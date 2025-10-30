@@ -22,9 +22,10 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
+app.set('trust proxy', 1);
+
 // 파서
 app.use(express.json({ limit: '1mb' }));
-
 // 보안 & 로깅
 security().forEach(mw => app.use(mw));
 app.use(logging());
