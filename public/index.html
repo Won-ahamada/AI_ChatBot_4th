@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
+  <title>KERIS AI Assistant (Phase 1)</title>
+  <link rel="stylesheet" href="/assets/css/style.css"/>
+</head>
+<body>
+  <main id="app" class="container">
+    <aside class="sidebar" aria-label="좌측 패널">
+      <div class="logo" aria-label="기관 로고">KERIS</div>
+      <div class="controls">
+        <label for="model">모델 선택</label>
+        <select id="model" aria-label="모델 선택">
+          <option value="chatgpt">ChatGPT (GPT-5)</option>
+          <option value="claude">Claude Sonnet 4.5</option>
+          <option value="gemini">Gemini 2.5 Pro</option>
+        </select>
+      </div>
+      <section class="notices" aria-labelledby="notices-title">
+        <h3 id="notices-title">안내사항 <small>(2025년 10월 30일 기준)</small></h3>
+        <ul id="noticeList" aria-live="polite"></ul>
+      </section>
+    </aside>
+
+    <section class="chat" aria-label="대화 영역">
+      <header class="chat-header">
+        <h1>KERIS RAG Chatbot</h1>
+        <span class="status" aria-live="polite">온라인</span>
+      </header>
+
+      <div id="error" class="error-banner" role="alert"></div>
+
+      <div id="messages" class="messages" aria-live="polite">
+        <div class="welcome">환영합니다 👋 좌측에서 모델을 선택하고 메시지를 입력하세요.</div>
+      </div>
+
+      <footer class="input-bar">
+        <input id="text" type="text" placeholder="메시지를 입력하세요..." aria-label="메시지 입력" autocomplete="off" inputmode="text"/>
+        <button id="send" aria-label="메시지 전송">전송 →</button>
+      </footer>
+    </section>
+  </main>
+
+  <script src="/assets/js/api.js"></script>
+  <script src="/assets/js/app.js"></script>
+</body>
+</html>
