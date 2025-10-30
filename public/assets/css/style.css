@@ -7,20 +7,121 @@
   --glass-strong:rgba(255,255,255,.95);
   --border:rgba(255,255,255,.28);
   --text:#222;
+  --success:#10b981;
+  --danger:#ef4444;
 }
 html,body{height:100%;margin:0;font-family:system-ui,'Noto Sans KR',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2)}
 body{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
 .container{display:flex;gap:12px;height:100dvh;max-width:1200px;margin:0 auto;padding:12px}
 .sidebar{width:320px;background:var(--glass);backdrop-filter:blur(12px);border-radius:16px;padding:16px;color:#fff;overflow:auto;border:1px solid var(--border)}
-.logo{font-weight:800;letter-spacing:.1em;margin-bottom:8px}
+.logo{font-weight:800;letter-spacing:.1em;margin-bottom:8px;font-size:1.4rem}
 .controls{display:flex;flex-direction:column;gap:6px;margin:8px 0 16px}
 .controls label{font-size:.9rem;opacity:.9}
-.controls select{padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.1);color:#fff;outline:none}
-.notices h3{margin:8px 0 6px}
-.notices ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px}
-.notice{padding:10px;border-radius:10px;background:rgba(255,255,255,.12);border:1px solid var(--border)}
-.notice .date{opacity:.9;font-size:.82rem;margin-bottom:2px}
-.notice .title{font-size:.95rem}
+.controls select{padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.1);color:#fff;outline:none;cursor:pointer}
+
+/* 업로드 섹션 */
+.upload-section{margin-top:16px}
+.upload-section h3{margin:0 0 12px;font-size:1.1rem}
+.upload-section h4{margin:12px 0 8px;font-size:.95rem;opacity:.9}
+
+/* 드롭존 */
+.dropzone{
+  border:2px dashed var(--border);
+  border-radius:12px;
+  padding:24px 16px;
+  text-align:center;
+  cursor:pointer;
+  transition:all .3s ease;
+  background:rgba(255,255,255,.05);
+}
+.dropzone:hover{
+  border-color:var(--keris-blue-2);
+  background:rgba(255,255,255,.1);
+}
+.dropzone.dragover{
+  border-color:var(--keris-blue-2);
+  background:rgba(102,126,234,.2);
+  transform:scale(1.02);
+}
+.upload-icon{
+  width:48px;
+  height:48px;
+  margin:0 auto 12px;
+  opacity:.8;
+}
+.dropzone-text{
+  margin:8px 0 4px;
+  font-weight:600;
+  font-size:.95rem;
+}
+.dropzone-hint{
+  margin:0;
+  font-size:.82rem;
+  opacity:.7;
+}
+
+/* 파일 목록 */
+.file-list{
+  margin-top:16px;
+}
+.file-list ul{
+  list-style:none;
+  padding:0;
+  margin:0;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+}
+.file-item{
+  padding:10px 12px;
+  border-radius:10px;
+  background:rgba(255,255,255,.12);
+  border:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+}
+.file-item.uploading{
+  opacity:.6;
+}
+.file-item.success{
+  border-color:var(--success);
+  background:rgba(16,185,129,.15);
+}
+.file-item.error{
+  border-color:var(--danger);
+  background:rgba(239,68,68,.15);
+}
+.file-info{
+  flex:1;
+  min-width:0;
+}
+.file-name{
+  font-size:.9rem;
+  font-weight:600;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.file-size{
+  font-size:.75rem;
+  opacity:.7;
+  margin-top:2px;
+}
+.file-remove{
+  background:rgba(239,68,68,.3);
+  border:1px solid rgba(239,68,68,.5);
+  color:#fff;
+  border-radius:6px;
+  padding:4px 8px;
+  font-size:.75rem;
+  cursor:pointer;
+  transition:all .2s;
+}
+.file-remove:hover{
+  background:rgba(239,68,68,.5);
+}
 
 .chat{flex:1;display:flex;flex-direction:column;background:var(--glass);backdrop-filter:blur(12px);border-radius:16px;color:#fff;border:1px solid var(--border)}
 .chat-header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border)}
@@ -47,7 +148,7 @@ body{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
 .error-banner{display:none;margin:6px 16px 0;color:#fff;background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);padding:8px 12px;border-radius:10px}
 .error-banner.show{display:block}
 
-.welcome{opacity:.9}
+.welcome{opacity:.9;text-align:center;padding:20px}
 
 @media(max-width:768px){
   .container{padding:0;gap:0}

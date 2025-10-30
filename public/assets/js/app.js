@@ -5,8 +5,10 @@
   const text = $("#text");
   const send = $("#send");
   const modelSel = $("#model");
-  const noticeList = $("#noticeList");
   const errorBanner = $("#error");
+  const dropzone = $("#dropzone");
+  const fileInput = $("#fileInput");
+  const fileList = $("#files");
 
   // Client-only Sliding Window (reset on refresh)
   const history = [];
@@ -15,27 +17,101 @@
   function showError(msg){
     errorBanner.textContent = msg;
     errorBanner.classList.add('show');
-    setTimeout(()=> errorBanner.classList.remove('show'), 3000);
+    setTimeout(()=> errorBanner.classList.remove('show'), 4000);
   }
 
-  async function loadNotices(){
+  function formatFileSize(bytes){
+    if(bytes < 1024) return bytes + ' B';
+    if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+    return (bytes/(1024*1024)).toFixed(1) + ' MB';
+  }
+
+  async function loadFiles(){
     try {
-      const res = await fetch('/api/news');
-      const data = await res.json();
-      noticeList.innerHTML = '';
-      (data || []).forEach(item => {
-        const li = document.createElement('li');
-        li.className = 'notice';
-        li.innerHTML = `<div class="date">${item.date || ''}</div><div class="title">${item.title || ''}</div>`;
-        noticeList.appendChild(li);
-      });
-      if(!noticeList.children.length){
-        const li = document.createElement('li'); li.className='notice'; li.textContent='표시할 안내사항이 없습니다.'; noticeList.appendChild(li);
+      const data = await window.API.listFiles();
+      fileList.innerHTML = '';
+      if(!data.files || data.files.length === 0){
+        fileList.innerHTML = '<li style="opacity:.7;font-size:.85rem;padding:8px;">업로드된 문서가 없습니다</li>';
+        return;
       }
+      data.files.forEach(file => {
+        const li = document.createElement('li');
+        li.className = 'file-item success';
+        li.innerHTML = `
+          <div class="file-info">
+            <div class="file-name">${file.name || file.filename}</div>
+            <div class="file-size">${formatFileSize(file.size || 0)}</div>
+          </div>
+          <button class="file-remove" data-file="${file.name || file.filename}">삭제</button>
+        `;
+        fileList.appendChild(li);
+      });
+
+      // 삭제 버튼 이벤트
+      fileList.querySelectorAll('.file-remove').forEach(btn => {
+        btn.addEventListener('click', async (e)=>{
+          const filename = e.target.dataset.file;
+          if(!confirm(`"${filename}"을(를) 삭제하시겠습니까?`)) return;
+          try{
+            await window.API.deleteFile(filename);
+            loadFiles();
+          }catch(err){
+            showError('파일 삭제 실패: ' + err.message);
+          }
+        });
+      });
     } catch(e){
-      const li = document.createElement('li'); li.className='notice'; li.textContent='안내를 불러오지 못했습니다.'; noticeList.appendChild(li);
+      console.error('파일 목록 로드 실패:', e);
     }
   }
+
+  async function uploadFile(file){
+    const li = document.createElement('li');
+    li.className = 'file-item uploading';
+    li.innerHTML = `
+      <div class="file-info">
+        <div class="file-name">${file.name}</div>
+        <div class="file-size">업로드 중...</div>
+      </div>
+    `;
+    fileList.appendChild(li);
+
+    try{
+      await window.API.uploadFile(file);
+      loadFiles();
+    }catch(err){
+      showError('업로드 실패: ' + err.message);
+      li.remove();
+    }
+  }
+
+  // 드래그 앤 드롭 이벤트
+  ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+    dropzone.addEventListener(evt, (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+    });
+  });
+
+  ['dragenter', 'dragover'].forEach(evt => {
+    dropzone.addEventListener(evt, ()=> dropzone.classList.add('dragover'));
+  });
+
+  ['dragleave', 'drop'].forEach(evt => {
+    dropzone.addEventListener(evt, ()=> dropzone.classList.remove('dragover'));
+  });
+
+  dropzone.addEventListener('drop', (e)=>{
+    const files = e.dataTransfer.files;
+    [...files].forEach(file => uploadFile(file));
+  });
+
+  dropzone.addEventListener('click', ()=> fileInput.click());
+
+  fileInput.addEventListener('change', (e)=>{
+    [...e.target.files].forEach(file => uploadFile(file));
+    e.target.value = '';
+  });
 
   function renderMarkdown(text){
     // minimal markdown: **bold**, *italic*, `code`
@@ -112,5 +188,5 @@
     setTimeout(()=>document.activeElement.scrollIntoView({block:'end', behavior:'smooth'}), 50);
   });
 
-  loadNotices();
+  loadFiles();
 })();

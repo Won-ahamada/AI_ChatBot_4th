@@ -30,12 +30,12 @@ export default function security(){
       referrerPolicy: { policy: "no-referrer" },
       frameguard: { action: "sameorigin" },
       hidePoweredBy: true,
-      xssFilter: true, // Helmet v7에서 제거되었으나, 옵션 유지(무해)
+      xssFilter: true,
       noSniff: true,
     }),
-    // 허용 HTTP 메서드 제한
+    // 허용 HTTP 메서드 제한 (DELETE 추가)
     (req, res, next) => {
-      const allowed = ['GET', 'POST', 'OPTIONS'];
+      const allowed = ['GET', 'POST', 'DELETE', 'OPTIONS'];
       if(!allowed.includes(req.method)) {
         return res.status(405).json({ error: { code: 'METHOD_NOT_ALLOWED', message: '허용되지 않은 메서드입니다.' }});
       }

@@ -11,11 +11,17 @@ router.post('/', async (req, res) => {
     if(!message){
       return res.status(400).json({ error: { code:'BAD_REQUEST', message:'message 필드는 필수입니다.' } });
     }
+    
+    // RAG 검색 (업로드된 문서 기반)
     let snippets = [];
-    const useAnything = Boolean(process.env.ANYTHING_BASE && process.env.ANYTHING_TOKEN && process.env.WORKSPACE_ID);
-    if(!useAnything && ragEnabled()){
-      try{ snippets = await retrieveSnippets({ query: message, topK: 5 }); }catch(_){}
+    if(ragEnabled()){
+      try{ 
+        snippets = await retrieveSnippets({ query: message, topK: 5 }); 
+      }catch(err){
+        console.warn('RAG 검색 실패:', err.message);
+      }
     }
+    
     const text = await generateLLM({ message, history, userModel: model, snippets });
     res.json({ response: text });
   }catch(e){

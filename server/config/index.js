@@ -7,7 +7,6 @@ dotenv.config();
  */
 const required = [
   'PORT',
-  // 모델 매핑 기본값은 .env.example에 제공되지만 운영에서는 명시 권장
   'MODEL_MAP_CHATGPT'
 ];
 const missing = required.filter(k => !process.env[k]);
@@ -33,11 +32,6 @@ export const config = {
       claude: process.env.MODEL_MAP_CLAUDE || 'claude-3-5-sonnet-20240620',
       gemini: process.env.MODEL_MAP_GEMINI || 'gemini-1.5-pro',
     },
-  },
-  anythingLLM: {
-    base: process.env.ANYTHING_BASE || '',
-    token: process.env.ANYTHING_TOKEN || '',
-    workspace: process.env.WORKSPACE_ID || '',
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',

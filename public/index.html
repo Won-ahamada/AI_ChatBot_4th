@@ -3,24 +3,40 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>KERIS AI Assistant (Phase 1)</title>
+  <title>KERIS AI Assistant - RAG Chatbot</title>
   <link rel="stylesheet" href="/assets/css/style.css"/>
 </head>
 <body>
   <main id="app" class="container">
     <aside class="sidebar" aria-label="좌측 패널">
       <div class="logo" aria-label="기관 로고">KERIS</div>
+      
       <div class="controls">
         <label for="model">모델 선택</label>
         <select id="model" aria-label="모델 선택">
-          <option value="chatgpt">ChatGPT (GPT-5)</option>
-          <option value="claude">Claude Sonnet 4.5</option>
-          <option value="gemini">Gemini 2.5 Pro</option>
+          <option value="chatgpt">ChatGPT (GPT-4o-mini)</option>
+          <option value="claude">Claude Sonnet 3.5</option>
+          <option value="gemini">Gemini 1.5 Pro</option>
         </select>
       </div>
-      <section class="notices" aria-labelledby="notices-title">
-        <h3 id="notices-title">안내사항 <small>(2025년 10월 30일 기준)</small></h3>
-        <ul id="noticeList" aria-live="polite"></ul>
+
+      <!-- 파일 업로드 영역 -->
+      <section class="upload-section" aria-labelledby="upload-title">
+        <h3 id="upload-title">문서 업로드</h3>
+        <div id="dropzone" class="dropzone">
+          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+          </svg>
+          <p class="dropzone-text">파일을 드래그하거나 클릭하세요</p>
+          <p class="dropzone-hint">PDF, DOCX, TXT 지원</p>
+          <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt" hidden/>
+        </div>
+
+        <!-- 업로드된 파일 목록 -->
+        <div class="file-list" id="fileList" aria-live="polite">
+          <h4>업로드된 문서</h4>
+          <ul id="files"></ul>
+        </div>
       </section>
     </aside>
 
@@ -33,7 +49,7 @@
       <div id="error" class="error-banner" role="alert"></div>
 
       <div id="messages" class="messages" aria-live="polite">
-        <div class="welcome">환영합니다 👋 좌측에서 모델을 선택하고 메시지를 입력하세요.</div>
+        <div class="welcome">환영합니다 👋<br/>좌측에서 문서를 업로드하고 질문하세요.</div>
       </div>
 
       <footer class="input-bar">

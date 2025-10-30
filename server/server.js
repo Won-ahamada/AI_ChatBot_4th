@@ -1,6 +1,6 @@
 
 /**
- * Phase 1 API 서버 (무상태) - 섹션 6 보안/로깅 강화
+ * Phase 1 API 서버 (무상태) - 파일 업로드 기능 추가
  */
 import express from 'express';
 import path from 'path';
@@ -12,6 +12,8 @@ import logging from './middlewares/logging.js';
 import security from './middlewares/security.js';
 import chatRouter from './routes/chat.js';
 import newsRouter from './routes/news.js';
+import uploadRouter from './routes/upload.js';
+import { initializeCollection } from './services/rag.js';
 
 dotenv.config();
 
@@ -35,7 +37,7 @@ app.use(cors({
     return cb(new Error('CORS not allowed'), false);
   },
   credentials: false,
-  methods: ['GET','POST','OPTIONS'],
+  methods: ['GET','POST','DELETE','OPTIONS'],
 }));
 
 // OPTIONS 프리플라이트 처리
@@ -52,20 +54,32 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 // 라우트
 import fs from 'fs';
-import url from 'url';
 
 app.get('/healthz', (req, res)=> {
   try{
     const fp = path.join(__dirname, '..', 'public', 'version.json');
     const txt = fs.readFileSync(fp, 'utf-8');
     const ver = JSON.parse(txt);
-    res.status(200).json({ ok:true, version: ver.version, phase: ver.phase, uptime_sec: Math.round(process.uptime()) });
+    res.status(200).json({ 
+      ok:true, 
+      version: ver.version, 
+      phase: ver.phase, 
+      uptime_sec: Math.round(process.uptime()),
+      rag_enabled: Boolean(process.env.QDRANT_URL && process.env.OPENAI_API_KEY)
+    });
   }catch(e){
-    res.status(200).json({ ok:true, version: process.env.APP_VERSION || '1.0.0', uptime_sec: Math.round(process.uptime()) });
+    res.status(200).json({ 
+      ok:true, 
+      version: process.env.APP_VERSION || '1.0.0', 
+      uptime_sec: Math.round(process.uptime()),
+      rag_enabled: Boolean(process.env.QDRANT_URL && process.env.OPENAI_API_KEY)
+    });
   }
 });
+
 app.use('/api/chat', chatRouter);
 app.use('/api/news', newsRouter);
+app.use('/api/upload', uploadRouter);
 
 // 404
 app.use((req, res, next) => {
@@ -80,6 +94,18 @@ app.use((err, req, res, next)=>{
 });
 
 const PORT = process.env.PORT || 8080;
+
+// Qdrant 컬렉션 초기화 (선택적)
+if(process.env.QDRANT_URL && process.env.OPENAI_API_KEY){
+  initializeCollection().catch(err => {
+    console.warn('⚠️  Qdrant 컬렉션 초기화 실패:', err.message);
+  });
+}
+
 app.listen(PORT, ()=>{
-  console.log(JSON.stringify({ msg:'listening', port: PORT }));
+  console.log(JSON.stringify({ 
+    msg:'listening', 
+    port: PORT,
+    rag_enabled: Boolean(process.env.QDRANT_URL && process.env.OPENAI_API_KEY)
+  }));
 });
