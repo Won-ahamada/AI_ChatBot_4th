@@ -283,4 +283,58 @@ body {
   flex: 1;
   padding: 12px;
   border-radius: 14px;
-  border: 1
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.1);
+  color: #2c3e50;
+  outline: none;
+}
+.input-bar input::placeholder { color: rgba(44,62,80,.5) }
+.input-bar button {
+  padding: 12px 20px;
+  border-radius: 14px;
+  border: none;
+  background: linear-gradient(135deg, var(--keris-blue), var(--keris-blue-2));
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .3s;
+}
+.input-bar button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,75,135,.3);
+}
+.input-bar button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+/* 에러 배너 */
+#error {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(239,68,68,.9);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 12px;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .3s;
+}
+#error.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 반응형 */
+@media (max-width: 768px) {
+  .container { flex-direction: column; padding: 8px; gap: 8px }
+  .sidebar {
+    width: 100%;
+    max-height: 40vh;
+  }
+  .chat { min-height: 50vh }
+  .message { max-width: 90% }
+}
