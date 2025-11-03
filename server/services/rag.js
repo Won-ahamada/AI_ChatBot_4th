@@ -1,4 +1,3 @@
-
 import { chunkText } from './fileParser.js';
 
 /**
@@ -49,6 +48,38 @@ async function embedText(text){
   
   // 배열인 경우
   return j?.data?.map(d => d.embedding) || [];
+}
+
+/**
+ * Qdrant 컬렉션에 문서가 있는지 확인
+ */
+export async function hasAnyDocuments(){
+  if(!enabled()) return false;
+  
+  try{
+    const url = `${QDRANT_URL.replace(/\/$/, '')}/collections/${encodeURIComponent(QDRANT_COLLECTION)}/points/scroll`;
+    
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type':'application/json',
+        ...(QDRANT_API_KEY ? {'api-key': QDRANT_API_KEY} : {})
+      },
+      body: JSON.stringify({
+        limit: 1,
+        with_payload: false,
+        with_vector: false
+      })
+    });
+
+    if(!r.ok) return false;
+    
+    const j = await r.json();
+    return (j?.result?.points?.length || 0) > 0;
+  }catch(err){
+    console.warn('문서 존재 확인 실패:', err.message);
+    return false;
+  }
 }
 
 /**
