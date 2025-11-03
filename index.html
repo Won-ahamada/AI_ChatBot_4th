@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KERIS AI Assistant - 한국교육학술정보원</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="background-wrapper">
+        <div class="gradient-bg"></div>
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
+        </div>
+    </div>
+
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-panel" id="sidebar">
+            <div class="logo-section">
+                <div class="logo-wrapper">
+                    <!-- KERIS Official Logo SVG -->
+                    <svg class="logo-svg" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Logo Background Circles -->
+                        <circle cx="30" cy="35" r="18" fill="#8BC53F" opacity="0.9"/>
+                        <circle cx="50" cy="30" r="15" fill="#F7941E" opacity="0.9"/>
+                        <circle cx="40" cy="50" r="20" fill="#4DA6D6" opacity="0.9"/>
+                        
+                        <!-- KERIS Text -->
+                        <rect x="80" y="15" width="120" height="60" rx="10" fill="#004B87"/>
+                        <text x="140" y="55" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="middle">KERIS</text>
+                        
+                        <!-- Korean Text -->
+                        <text x="250" y="40" font-family="'Noto Sans KR', sans-serif" font-size="18" font-weight="700" fill="#004B87">한국교육학술정보원</text>
+                        <text x="250" y="60" font-family="'Noto Sans KR', sans-serif" font-size="10" fill="#004B87">KOREA EDUCATION AND RESEARCH INFORMATION SERVICE</text>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-title">AI Assistant</div>
+                    <div class="logo-subtitle">교육 디지털 혁신을 위한<br>인공지능 도우미</div>
+                </div>
+            </div>
+
+            <div class="upload-section">
+                <div class="controls">
+                    <label for="model">모델 선택</label>
+                    <select id="model" aria-label="모델 선택">
+                        <option value="chatgpt">ChatGPT (GPT-4o-mini)</option>
+                        <option value="claude">Claude Sonnet 3.5</option>
+                        <option value="gemini">Gemini 1.5 Pro</option>
+                    </select>
+                </div>
+
+                <h3>📎 문서 업로드</h3>
+                <div id="dropzone" class="dropzone">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                    </svg>
+                    <p class="dropzone-text">파일을 드래그하거나 클릭하세요</p>
+                    <p class="dropzone-hint">PDF, DOCX, TXT 지원 (최대 10MB)</p>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt" hidden/>
+                </div>
+
+                <div class="file-list">
+                    <h4>업로드된 문서</h4>
+                    <ul id="files"></ul>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content glass-panel">
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">☰</button>
+                    <div class="header-title">
+                        <h2>KERIS AI Assistant</h2>
+                        <div class="header-subtitle">무엇이든 물어보세요</div>
+                    </div>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>온라인</span>
+                </div>
+            </header>
+
+            <div class="chat-wrapper" id="chatContainer">
+                <div class="welcome-message">
+                    <h2>안녕하세요! 👋</h2>
+                    <p>한국교육학술정보원 AI Assistant입니다.<br>
+                    문서를 업로드하여 질문하거나, 자유롭게 대화를 나눠보세요.</p>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        class="input-field" 
+                        id="messageInput" 
+                        placeholder="메시지를 입력하세요..."
+                        autocomplete="off"
+                    >
+                    <button class="send-btn" id="sendBtn">
+                        <span>전송</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Overlay -->
+        <div class="overlay" id="overlay"></div>
+    </div>
+
+    <script src="assets/js/api.js"></script>
+    <script>
+        (() => {
+            const $ = (s) => document.querySelector(s);
+            const messages = $("#chatContainer");
+            const text = $("#messageInput");
+            const send = $("#sendBtn");
+            const modelSel = $("#model");
+            const dropzone = $("#dropzone");
+            const fileInput = $("#fileInput");
+            const fileList = $("#files");
+            const menuToggle = $("#menuToggle");
+            const sidebar = $("#sidebar");
+            const overlay = $("#overlay");
+
+            const history = [];
+            const MAX_TURNS = 8;
+            let currentTypingIndicator = null;
+            let currentMessageDiv = null;
+
+            function showError(msg){
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = msg;
+                messages.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 4000);
+            }
+
+            function formatFileSize(bytes){
+                if(bytes < 1024) return bytes + ' B';
+                if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+                return (bytes/(1024*1024)).toFixed(1) + ' MB';
+            }
+
+            async function loadFiles(){
+                try {
+                    const data = await window.API.listFiles();
+                    fileList.innerHTML = '';
+                    if(!data.files || data.files.length === 0){
+                        fileList.innerHTML = '<li style="opacity:.7;font-size:.85rem;padding:8px;">업로드된 문서가 없습니다</li>';
+                        return;
+                    }
+                    data.files.forEach(file => {
+                        const li = document.createElement('li');
+                        li.className = 'file-item success';
+                        li.innerHTML = `
+                            <div class="file-info">
+                                <div class="file-name">${file.name || file.filename}</div>
+                                <div class="file-size">${formatFileSize(file.size || 0)}</div>
+                            </div>
+                            <button class="file-remove" data-file="${file.name || file.filename}">삭제</button>
+                        `;
+                        fileList.appendChild(li);
+                    });
+
+                    fileList.querySelectorAll('.file-remove').forEach(btn => {
+                        btn.addEventListener('click', async (e)=>{
+                            const filename = e.target.dataset.file;
+                            if(!confirm(`"${filename}"을(를) 삭제하시겠습니까?`)) return;
+                            try{
+                                await window.API.deleteFile(filename);
+                                loadFiles();
+                            }catch(err){
+                                showError('파일 삭제 실패: ' + err.message);
+                            }
+                        });
+                    });
+                } catch(e){
+                    console.error('파일 목록 로드 실패:', e);
+                }
+            }
+
+            async function uploadFile(file){
+                const li = document.createElement('li');
+                li.className = 'file-item uploading';
+                li.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">업로드 중...</div>
+                    </div>
+                `;
+                fileList.appendChild(li);
+
+                try{
+                    const result = await window.API.uploadFile(file);
+                    console.log('Upload result:', result);
+                    loadFiles();
+                }catch(err){
+                    showError('업로드 실패: ' + err.message);
+                    li.remove();
+                }
+            }
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                dropzone.addEventListener(evt, (e)=>{
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            ['dragenter', 'dragover'].forEach(evt => {
+                dropzone.addEventListener(evt, ()=> dropzone.classList.add('dragover'));
+            });
+
+            ['dragleave', 'drop'].forEach(evt => {
+                dropzone.addEventListener(evt, ()=> dropzone.classList.remove('dragover'));
+            });
+
+            dropzone.addEventListener('drop', (e)=>{
+                const files = e.dataTransfer.files;
+                [...files].forEach(file => uploadFile(file));
+            });
+
+            dropzone.addEventListener('click', ()=> fileInput.click());
+
+            fileInput.addEventListener('change', (e)=>{
+                [...e.target.files].forEach(file => uploadFile(file));
+                e.target.value = '';
+            });
+
+            function renderMarkdown(text){
+                return text
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+                    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+                    .replace(/`(.+?)`/g,'<code>$1</code>')
+                    .replace(/\[(.*?)\]/g,'<span class="citation">[$1]</span>')
+                    .replace(/\n/g,'<br/>');
+            }
+
+            function addMessage(role, content, withLabel=false){
+                const wrap = document.createElement('div');
+                wrap.className = `message ${role}`;
+                const label = document.createElement('span');
+                label.className = 'message-label';
+                label.textContent = role === 'user' ? '사용자' : 'KERIS AI';
+                const body = document.createElement('div');
+                body.className = 'md';
+                body.innerHTML = renderMarkdown(content);
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                if(withLabel) contentDiv.appendChild(label);
+                contentDiv.appendChild(body);
+                wrap.appendChild(contentDiv);
+                messages.appendChild(wrap);
+                messages.scrollTop = messages.scrollHeight;
+                return wrap;
+            }
+
+            function addTyping(){
+                const wrap = document.createElement('div');
+                wrap.className = 'message ai';
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                for(let i=0; i<3; i++){
+                    const dot = document.createElement('span');
+                    dot.className = 'typing-dot';
+                    typingDiv.appendChild(dot);
+                }
+                wrap.appendChild(typingDiv);
+                messages.appendChild(wrap);
+                messages.scrollTop = messages.scrollHeight;
+                return wrap;
+            }
+
+            function addStreamingMessage(){
+                const wrap = document.createElement('div');
+                wrap.className = 'message ai';
+                const label = document.createElement('span');
+                label.className = 'message-label';
+                label.textContent = 'KERIS AI';
+                const body = document.createElement('div');
+                body.className = 'md';
+                body.innerHTML = '';
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.appendChild(label);
+                contentDiv.appendChild(body);
+                wrap.appendChild(contentDiv);
+                messages.appendChild(wrap);
+                messages.scrollTop = messages.scrollHeight;
+                return body;
+            }
+
+            async function onSend(){
+                const content = text.value.trim();
+                if(!content) return;
+                if(send.disabled) return;
+                send.disabled = true;
+
+                const welcomeMsg = messages.querySelector('.welcome-message');
+                if(welcomeMsg) welcomeMsg.remove();
+
+                addMessage('user', content, true);
+                history.push({ role:'user', content });
+                if(history.length > MAX_TURNS*2){
+                    history.splice(0, history.length - MAX_TURNS*2);
+                }
+
+                text.value='';
+                const model = modelSel.value;
+
+                currentTypingIndicator = addTyping();
+                let responseContent = '';
+                let sources = [];
+
+                try{
+                    await window.API.chat({
+                        message: content,
+                        model,
+                        history
+                    }, (data) => {
+                        if (data.type === 'status') {
+                            // Update typing indicator with status
+                            const statusDiv = currentTypingIndicator.querySelector('.typing-indicator');
+                            if (statusDiv) {
+                                statusDiv.textContent = data.message || 'Processing...';
+                            }
+                        } else if (data.type === 'sources') {
+                            sources = data.sources || [];
+                        } else if (data.type === 'content') {
+                            // Remove typing indicator and start streaming content
+                            if (currentTypingIndicator) {
+                                currentTypingIndicator.remove();
+                                currentTypingIndicator = null;
+                                currentMessageDiv = addStreamingMessage();
+                            }
+
+                            responseContent += data.content;
+                            if (currentMessageDiv) {
+                                currentMessageDiv.innerHTML = renderMarkdown(responseContent);
+                                messages.scrollTop = messages.scrollHeight;
+                            }
+                        } else if (data.type === 'done') {
+                            // Add sources if available
+                            if (sources.length > 0 && currentMessageDiv) {
+                                const sourcesHtml = '<br/><br/><small><strong>출처:</strong> ' +
+                                    sources.map(s => s.citation).join(', ') + '</small>';
+                                currentMessageDiv.innerHTML += sourcesHtml;
+                            }
+
+                            history.push({ role:'assistant', content: responseContent });
+                            if(history.length > MAX_TURNS*2){
+                                history.splice(0, history.length - MAX_TURNS*2);
+                            }
+                        } else if (data.type === 'error') {
+                            if (currentTypingIndicator) {
+                                currentTypingIndicator.remove();
+                                currentTypingIndicator = null;
+                            }
+                            showError('오류: ' + (data.error || '알 수 없는 오류'));
+                            addMessage('ai', '죄송합니다. 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', true);
+                        }
+                    });
+
+                }catch(e){
+                    if (currentTypingIndicator) {
+                        currentTypingIndicator.remove();
+                    }
+                    showError('연결 오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                    addMessage('ai', '연결 오류가 발생했습니다. 잠시 후 다시 시도해주세요.', true);
+                }finally{
+                    send.disabled = false;
+                    currentTypingIndicator = null;
+                    currentMessageDiv = null;
+                }
+            }
+
+            send.addEventListener('click', onSend);
+            text.addEventListener('keypress', (e)=>{
+                if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); onSend(); }
+            });
+
+            menuToggle.addEventListener('click', ()=>{
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+
+            overlay.addEventListener('click', ()=>{
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+
+            loadFiles();
+        })();
+    </script>
+</body>
+</html>

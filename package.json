@@ -1,19 +1,49 @@
 {
-  "name": "keris-phase1",
-  "version": "0.2.0",
-  "type": "module",
+  "name": "keris-rag-chatbot",
+  "version": "2.1.0",
+  "description": "Redis+ChatGPT+Qdrant RAG Chatbot - SSE 스트리밍·비동기 인덱싱·MMR+LLM Rerank·관측성/보안/폴백 포함한 최신 골격",
+  "main": "server.js",
   "scripts": {
-    "start": "node server/server.js",
-    "dev": "NODE_ENV=development node server/server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "eval": "node scripts/evaluate.js",
+    "migrate": "node scripts/migrate.js"
   },
   "dependencies": {
+    "express": "^4.18.2",
     "cors": "^2.8.5",
-    "dotenv": "^16.4.5",
-    "express": "^4.19.2",
-    "express-rate-limit": "^7.1.5",
-    "helmet": "^7.1.0",
+    "helmet": "^7.0.0",
     "multer": "^1.4.5-lts.1",
+    "express-rate-limit": "^6.8.1",
+    "redis": "^4.6.7",
+    "@qdrant/js-client-rest": "^1.4.0",
+    "bullmq": "^4.6.3",
+    "openai": "^4.5.0",
     "pdf-parse": "^1.1.1",
-    "mammoth": "^1.6.0"
-  }
+    "mammoth": "^1.6.0",
+    "uuid": "^9.0.0",
+    "crypto": "^1.0.1",
+    "lodash": "^4.17.21",
+    "winston": "^3.10.0",
+    "dotenv": "^16.3.1",
+    "prom-client": "^14.2.0",
+    "@opentelemetry/api": "^1.4.1",
+    "@opentelemetry/sdk-node": "^0.40.0",
+    "@opentelemetry/exporter-otlp-http": "^0.40.0",
+    "crypto-js": "^4.1.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": [
+    "rag",
+    "chatbot",
+    "openai",
+    "qdrant",
+    "redis",
+    "streaming",
+    "korean"
+  ],
+  "author": "251029 AI 챗봇개발",
+  "license": "MIT"
 }

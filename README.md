@@ -1,186 +1,278 @@
+# KERIS RAG Chatbot
 
-# KERIS Phase 1 – RAG Chatbot with File Upload
+**한국교육학술정보원 AI Assistant** - Redis+ChatGPT+Qdrant RAG Chatbot with SSE Streaming, Asynchronous Indexing, MMR+LLM Reranking, Observability, Security, and Fallback mechanisms.
 
-## 주요 특징
-- 🚀 **파일 드래그 앤 드롭**: PDF, DOCX, TXT 문서 업로드
-- 🔍 **실시간 RAG 검색**: 업로드된 문서 기반 질의응답
-- 💬 **다중 모델 지원**: ChatGPT, Claude, Gemini 선택 가능
-- 🎨 **현대적 UI**: 그라디언트 배경, 반투명 글래스모피즘 디자인
-- 🔒 **보안**: Rate limiting, CORS, CSP 헤더 적용
+## Features
 
-## 실행 방법
+- **Real-time Streaming**: Server-Sent Events (SSE) for real-time chat responses
+- **Advanced RAG**: MMR diversification + LLM reranking for better results
+- **Multi-format Support**: PDF, DOCX, TXT, MD file processing
+- **Asynchronous Processing**: BullMQ-based queue system for document indexing
+- **Caching**: Redis-based caching for embeddings, retrieval, and answers
+- **Security**: Rate limiting, API key authentication, input validation
+- **Observability**: Prometheus metrics, structured logging, health checks
+- **Resilience**: Circuit breakers, timeouts, fallback mechanisms
+
+## Tech Stack
+
+- **Backend**: Node.js + Express
+- **Vector DB**: Qdrant
+- **Cache/Queue**: Redis + BullMQ
+- **LLM**: OpenAI GPT-4o-mini
+- **Embeddings**: text-embedding-3-large
+- **Frontend**: Vanilla JS with modern UI
+
+## Quick Start
+
+### 1. Prerequisites
+
+- Node.js 18+
+- Docker & Docker Compose
+- OpenAI API key
+
+### 2. Setup
 
 ```bash
-# 1. 의존성 설치
+# Clone and install
+git clone <repository>
+cd keris-rag-chatbot
 npm install
 
-# 2. 환경변수 설정
+# Configure environment
 cp .env.example .env
-# .env 파일을 열어서 필수 값 입력:
-# - OPENAI_API_KEY (필수)
-# - QDRANT_URL (필수)
-# - QDRANT_API_KEY (필수)
+# Edit .env with your API keys
 
-# 3. 서버 실행
-npm start
+# Start infrastructure
+docker compose up -d redis qdrant
 
-# 4. 브라우저에서 접속
-# http://localhost:8080
+# Run migration
+npm run migrate
+
+# Start development server
+npm run dev
 ```
 
-## 필수 환경변수
+### 3. Access
 
-### OpenAI API
+- **Web Interface**: http://localhost:3000
+- **API**: http://localhost:3000/api
+- **Health Check**: http://localhost:3000/api/health
+- **Metrics**: http://localhost:3000/api/metrics
+
+## Configuration
+
+### Environment Variables
+
+| Variable | Type | Default | Description |
+|----------|------|---------|-------------|
+| `PORT` | number | 3000 | Server port |
+| `OPENAI_API_KEY` | string | required | OpenAI API key |
+| `OPENAI_MODEL` | string | gpt-4o-mini | LLM model |
+| `EMBED_MODEL` | string | text-embedding-3-large | Embedding model |
+| `QDRANT_URL` | string | http://localhost:6333 | Qdrant URL |
+| `REDIS_URL` | string | redis://localhost:6379 | Redis URL |
+| `TOP_K` | number | 6 | Number of documents to return |
+| `SEARCH_K` | number | 20 | Number of documents to search |
+| `MMR_LAMBDA` | number | 0.3 | MMR diversity parameter |
+| `CHUNK_SIZE` | number | 1200 | Document chunk size |
+| `CHUNK_OVERLAP` | number | 180 | Chunk overlap size |
+| `RATE_LIMIT_RPM` | number | 60 | Rate limit per minute |
+| `API_KEY` | string | required | API authentication key |
+
+### RAG Configuration
+
+- **Retrieval**: Vector similarity search with score threshold
+- **MMR**: Maximal Marginal Relevance for diversity (λ=0.3)
+- **Reranking**: OpenAI-based semantic reranking
+- **Context**: Smart truncation with sentence boundaries
+- **Citations**: Automatic source attribution
+
+## API Reference
+
+### Chat (Streaming)
+
 ```bash
-OPENAI_API_KEY=sk-...
-OPENAI_EMBEDDING_MODEL=text-embedding-3-small
-```
-
-### Qdrant Vector Database
-```bash
-QDRANT_URL=https://your-instance.qdrant.tech
-QDRANT_API_KEY=your-api-key
-QDRANT_COLLECTION=keris_documents
-```
-
-## Qdrant 설정 방법
-
-### 옵션 1: Qdrant Cloud (권장)
-1. [qdrant.tech](https://qdrant.tech)에서 무료 계정 생성
-2. 새 클러스터 생성 (1GB Free tier 사용 가능)
-3. API 키 발급
-4. 클러스터 URL 복사 → `.env`의 `QDRANT_URL`에 입력
-
-### 옵션 2: Docker로 로컬 실행
-```bash
-docker run -p 6333:6333 qdrant/qdrant
-```
-```bash
-# .env 설정
-QDRANT_URL=http://localhost:6333
-QDRANT_API_KEY=  # 로컬은 비워둬도 됨
-```
-
-## 사용 방법
-
-### 1. 문서 업로드
-- 왼쪽 사이드바에서 파일을 드래그 앤 드롭
-- 또는 영역 클릭하여 파일 선택
-- 지원 형식: **PDF, DOCX, TXT**
-- 최대 파일 크기: **10MB**
-
-### 2. 질문하기
-- 업로드된 문서가 자동으로 임베딩되어 Vector DB에 저장됩니다
-- 메시지 입력창에 질문 입력
-- 시스템이 자동으로 관련 문서를 검색하여 답변 생성
-
-### 3. 모델 선택
-- ChatGPT (GPT-4o-mini) - 빠르고 경제적
-- Claude Sonnet 3.5 - 긴 문맥 처리
-- Gemini 1.5 Pro - 구글의 최신 모델
-
-## 프로젝트 구조
-
-```
-keris-phase1/
-├── public/
-│   ├── index.html              # 메인 UI
-│   ├── assets/
-│   │   ├── css/style.css       # 스타일 (드래그 앤 드롭 UI 포함)
-│   │   └── js/
-│   │       ├── api.js          # API 클라이언트 (파일 업로드 포함)
-│   │       └── app.js          # 메인 앱 로직
-│   └── version.json
-├── server/
-│   ├── server.js               # Express 서버
-│   ├── config/
-│   │   ├── index.js
-│   │   └── models.js
-│   ├── middlewares/
-│   │   ├── logging.js          # JSON Line 로깅
-│   │   └── security.js         # 보안 헤더
-│   ├── routes/
-│   │   ├── chat.js             # 채팅 API
-│   │   ├── news.js             # 공지사항 (제거 예정)
-│   │   └── upload.js           # 파일 업로드 API ⭐ NEW
-│   └── services/
-│       ├── llm.js              # LLM 호출
-│       ├── rag.js              # Vector DB 검색/저장 ⭐ UPDATED
-│       ├── fileParser.js       # 파일 파싱 ⭐ NEW
-│       └── prompt.js           # 프롬프트 빌더
-├── uploads/                    # 업로드된 파일 저장소 (자동 생성)
-├── package.json
-├── .env.example
-└── README.md
-```
-
-## API 엔드포인트
-
-### 파일 업로드
-- **POST** `/api/upload` - 파일 업로드 및 임베딩
-- **GET** `/api/upload` - 업로드된 파일 목록
-- **DELETE** `/api/upload/:filename` - 파일 삭제
-
-### 채팅
-- **POST** `/api/chat` - 질의응답
-  ```json
-  {
-    "message": "규정 10조의 내용은?",
+curl -X POST http://localhost:3000/api/chat \
+  -H "Content-Type: application/json" \
+  -H "X-API-Key: your-api-key" \
+  -d '{
+    "message": "What is the main topic?",
     "model": "chatgpt",
     "history": []
-  }
-  ```
-
-### 헬스체크
-- **GET** `/healthz` - 서버 상태 확인
-
-## 파일 처리 플로우
-
-```
-1. 사용자 파일 업로드 (PDF/DOCX/TXT)
-         ↓
-2. 서버가 파일 파싱 (텍스트 추출)
-         ↓
-3. 텍스트를 1000자 청크로 분할 (200자 오버랩)
-         ↓
-4. 각 청크를 OpenAI로 임베딩 생성
-         ↓
-5. Qdrant Vector DB에 저장
-         ↓
-6. 사용자 질문 시 유사도 검색 (Top-5)
-         ↓
-7. 관련 청크를 컨텍스트로 LLM에 전달
-         ↓
-8. 답변 생성 및 근거 출처 표시
+  }'
 ```
 
-## 보안 정책
+### File Upload
 
-- **CSP**: 스크립트/스타일은 self만 허용
-- **CORS**: 화이트리스트 기반 (환경변수 설정)
-- **Rate Limit**: 기본 60 req/min (조정 가능)
-- **파일 크기 제한**: 10MB
-- **허용 메서드**: GET, POST, DELETE, OPTIONS만
-
-## 로깅
-
-JSON Line 형식으로 표준 출력:
-```json
-{"rid":"abc123","method":"POST","path":"/api/chat","status":200,"latency_ms":42}
+```bash
+curl -X POST http://localhost:3000/api/files \
+  -H "X-API-Key: your-api-key" \
+  -F "files=@document.pdf"
 ```
 
-## 주의사항
+### File Management
 
-⚠️ **Phase 1은 무상태(Stateless) 원칙을 따릅니다:**
-- 대화 히스토리는 클라이언트(브라우저 메모리)에만 저장
-- 새로고침 시 대화 내용 초기화
-- 업로드된 파일은 서버에 저장되지만, 재시작 시 유지되지 않음
-- Vector DB(Qdrant)만 영구 저장
+```bash
+# List files
+curl -H "X-API-Key: your-api-key" \
+  http://localhost:3000/api/files
 
-## 배포
+# Delete file
+curl -X DELETE -H "X-API-Key: your-api-key" \
+  http://localhost:3000/api/files/filename.pdf
 
-Vercel, Render, Cloud Run 지원. 자세한 내용은 `DEPLOY_GUIDE.md` 참조.
+# Reindex file
+curl -X POST -H "X-API-Key: your-api-key" \
+  http://localhost:3000/api/reindex/filename.pdf
+```
 
-## 라이센스
+## Architecture
 
-MIT
+### RAG Flow
+
+1. **History Compaction**: Limit conversation history
+2. **Query Embedding**: Convert user query to vector
+3. **Vector Retrieval**: Search Qdrant with similarity threshold
+4. **MMR Diversification**: Apply Maximal Marginal Relevance
+5. **Deduplication**: Merge overlapping document chunks
+6. **Snippet Creation**: Extract relevant text windows
+7. **Reranking**: Optional LLM-based reranking
+8. **Context Truncation**: Fit within token limits
+9. **LLM Generation**: Stream response with citations
+10. **Source Attribution**: Return document references
+
+### Document Processing Pipeline
+
+1. **Upload**: File validation and storage
+2. **Parse Queue**: Extract text by page (PDF/DOCX/TXT)
+3. **Chunk**: Split into overlapping segments
+4. **Embed Queue**: Generate vector embeddings
+5. **Upsert Queue**: Store in Qdrant vector database
+
+### Caching Strategy
+
+- **Embeddings**: SHA-256 hash of text content
+- **Retrieval**: Query hash + parameters + version
+- **Reranking**: Query + document set hash
+- **Answers**: Complete context hash
+- **Invalidation**: Document-based key patterns
+
+## Monitoring
+
+### Health Checks
+
+- **Liveness**: `/api/live` - Basic process health
+- **Readiness**: `/api/ready` - Service dependencies
+- **Health**: `/api/health` - Detailed component status
+
+### Metrics (Prometheus)
+
+- `chat_latency_seconds` - End-to-end response time
+- `qdrant_search_latency_seconds` - Vector search time
+- `llm_latency_seconds` - LLM API response time
+- `cache_hits_total` / `cache_misses_total` - Cache performance
+- `queue_lag_seconds` - Processing queue delays
+- `errors_total` - Error counts by type
+
+### Logging
+
+Structured JSON logs with fields:
+- Timestamp, level, request ID
+- Route, latency, error details
+- RAG pipeline stages and timing
+
+## Security
+
+- **API Key Authentication**: Required for all endpoints
+- **Rate Limiting**: 60 requests/minute per IP
+- **Input Validation**: File types, sizes, content
+- **Security Headers**: Helmet.js protection
+- **Error Handling**: No sensitive data in responses
+
+## Production Deployment
+
+### Docker
+
+```bash
+# Build and run with Docker Compose
+docker compose --profile production up -d
+
+# Or build separately
+docker build -t keris-rag-chatbot .
+docker run -p 3000:3000 keris-rag-chatbot
+```
+
+### Environment Setup
+
+1. Set production environment variables
+2. Configure external Redis and Qdrant
+3. Set up monitoring and logging
+4. Configure load balancer
+5. Set up SSL/TLS termination
+
+### Scaling
+
+- **Stateless**: Horizontal scaling with load balancer
+- **Queue Workers**: Scale processing workers independently
+- **Caching**: Redis clustering for high availability
+- **Vector DB**: Qdrant clustering for large datasets
+
+## Development
+
+### Project Structure
+
+```
+├── config/           # Configuration management
+├── infra/           # Infrastructure services
+│   ├── redis.js     # Redis client
+│   ├── qdrant.js    # Qdrant client
+│   ├── queue.js     # BullMQ setup
+│   ├── logger.js    # Winston logging
+│   ├── metrics.js   # Prometheus metrics
+│   └── errorHandler.js
+├── services/        # Business logic
+│   ├── rag.js       # RAG orchestration
+│   ├── embedding.js # OpenAI embeddings
+│   ├── rerank.js    # Document reranking
+│   ├── parser.js    # File parsing
+│   └── indexer.js   # Document indexing
+├── routes/          # API routes
+│   ├── chat.js      # Chat endpoints
+│   ├── files.js     # File management
+│   └── health.js    # Health/metrics
+├── assets/          # Frontend assets
+├── storage/         # File storage
+└── scripts/         # Utilities
+```
+
+### Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
+
+### Testing
+
+```bash
+# Run evaluation
+npm run eval
+
+# Check health
+curl http://localhost:3000/api/health
+
+# Test file upload
+curl -X POST -F "files=@test.pdf" \
+  http://localhost:3000/api/files
+```
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Support
+
+- **Issues**: GitHub Issues
+- **Documentation**: This README
+- **Health Check**: `/api/health`
