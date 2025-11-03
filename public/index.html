@@ -1,65 +1,1067 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"/>
-  <title>KERIS AI Assistant - RAG Chatbot</title>
-  <link rel="stylesheet" href="/assets/css/style.css"/>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KERIS AI Assistant - 한국교육학술정보원</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --keris-blue: #004B87;
+            --keris-light-blue: #0066B3;
+            --keris-sky: #4DA6D6;
+            --keris-green: #8BC53F;
+            --keris-yellow: #F7941E;
+            --keris-orange: #ED7D31;
+            --glass-bg: rgba(255, 255, 255, 0.1);
+            --glass-border: rgba(255, 255, 255, 0.2);
+            --text-primary: #333333;
+            --text-on-glass: #ffffff;
+            --shadow-glass: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+            --shadow-hover: 0 8px 32px 0 rgba(31, 38, 135, 0.5);
+        }
+
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            min-height: 100vh;
+            overflow: hidden;
+            position: relative;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        /* Animated Background */
+        .background-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .gradient-bg {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(-45deg, #004B87, #0066B3, #4DA6D6, #8BC53F);
+            background-size: 400% 400%;
+            animation: gradientShift 15s ease infinite;
+        }
+
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .floating-shapes {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+        }
+
+        .shape {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
+            backdrop-filter: blur(10px);
+            border-radius: 50%;
+            animation: float 20s infinite ease-in-out;
+        }
+
+        .shape:nth-child(1) {
+            width: 300px;
+            height: 300px;
+            top: 10%;
+            left: 10%;
+            animation-delay: 0s;
+        }
+
+        .shape:nth-child(2) {
+            width: 200px;
+            height: 200px;
+            top: 70%;
+            right: 10%;
+            animation-delay: 5s;
+        }
+
+        .shape:nth-child(3) {
+            width: 150px;
+            height: 150px;
+            bottom: 10%;
+            left: 30%;
+            animation-delay: 10s;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            33% { transform: translate(30px, -30px) rotate(120deg); }
+            66% { transform: translate(-20px, 20px) rotate(240deg); }
+        }
+
+        /* Main Container */
+        .container {
+            display: flex;
+            height: 100vh;
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1rem;
+            gap: 1rem;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Glass Panel Effect */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 350px;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .logo-section {
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .logo-wrapper {
+            margin-bottom: 1rem;
+        }
+
+        .logo-svg {
+            width: 200px;
+            height: auto;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.1));
+        }
+
+        .logo-text {
+            color: white;
+            margin-top: 1rem;
+        }
+
+        .logo-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .logo-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.95;
+            line-height: 1.4;
+        }
+
+        /* Upload Section */
+        .upload-section {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            color: white;
+        }
+
+        .upload-section::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .upload-section::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+
+        .upload-section::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+        }
+
+        .upload-section h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .upload-section h4 {
+            font-size: 0.95rem;
+            font-weight: 500;
+            margin: 1.5rem 0 0.75rem;
+            opacity: 0.9;
+        }
+
+        /* Model Selection */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .controls label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            font-weight: 500;
+        }
+
+        .controls select {
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            font-size: 0.9rem;
+            outline: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .controls select:hover {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(255, 255, 255, 0.4);
+        }
+
+        .controls select option {
+            background: #004B87;
+            color: white;
+        }
+
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 16px;
+            padding: 2rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .dropzone:hover {
+            border-color: var(--keris-yellow);
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .dropzone.dragover {
+            border-color: var(--keris-green);
+            background: rgba(139, 197, 63, 0.2);
+            transform: scale(1.02);
+        }
+
+        .upload-icon {
+            width: 48px;
+            height: 48px;
+            margin: 0 auto 1rem;
+            opacity: 0.9;
+            stroke: currentColor;
+        }
+
+        .dropzone-text {
+            font-weight: 600;
+            font-size: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .dropzone-hint {
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        /* File List */
+        .file-list ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .file-item {
+            padding: 1rem;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .file-item:hover {
+            background: rgba(255, 255, 255, 0.18);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateX(5px);
+        }
+
+        .file-item.uploading {
+            opacity: 0.6;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 0.8; }
+        }
+
+        .file-item.success {
+            border-color: var(--keris-green);
+            background: rgba(139, 197, 63, 0.15);
+        }
+
+        .file-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 0.25rem;
+        }
+
+        .file-size {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .file-remove {
+            background: rgba(239, 68, 68, 0.3);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: white;
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .file-remove:hover {
+            background: rgba(239, 68, 68, 0.5);
+            transform: scale(1.05);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        /* Header */
+        .header {
+            padding: 1.5rem 2rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: white;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .menu-toggle {
+            display: none;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            font-size: 1.25rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .menu-toggle:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .header-title h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 0.25rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.2rem;
+            background: rgba(139, 197, 63, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(139, 197, 63, 0.3);
+            border-radius: 20px;
+            font-size: 0.875rem;
+            color: white;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #8BC53F;
+            border-radius: 50%;
+            animation: statusPulse 2s infinite;
+            box-shadow: 0 0 10px #8BC53F;
+        }
+
+        @keyframes statusPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.2); }
+        }
+
+        /* Chat Container */
+        .chat-wrapper {
+            flex: 1;
+            padding: 1.5rem;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .chat-wrapper::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .chat-wrapper::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+
+        .chat-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 4px;
+        }
+
+        /* Messages */
+        .message {
+            display: flex;
+            animation: slideIn 0.4s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 1rem 1.5rem;
+            border-radius: 20px;
+            position: relative;
+            backdrop-filter: blur(10px);
+            transition: transform 0.2s ease;
+        }
+
+        .message-content:hover {
+            transform: translateY(-2px);
+        }
+
+        .message.user .message-content {
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            border-bottom-right-radius: 5px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .message.ai .message-content {
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            color: var(--text-primary);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .message.user .message-label {
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .message.ai .message-label {
+            color: var(--keris-blue);
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: 3rem;
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            margin: auto;
+        }
+
+        .welcome-message h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .welcome-message p {
+            font-size: 1.1rem;
+            opacity: 0.95;
+            line-height: 1.6;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 1rem 1.5rem;
+            background: rgba(255, 255, 255, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 20px;
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--keris-blue);
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+        @keyframes typing {
+            0%, 60%, 100% { transform: scale(1); opacity: 0.5; }
+            30% { transform: scale(1.3); opacity: 1; }
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 1.5rem;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 30px;
+            padding: 0.5rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .input-field {
+            flex: 1;
+            padding: 0.75rem 1.25rem;
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 0.95rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .input-field::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .send-btn {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--keris-blue), var(--keris-light-blue));
+            color: white;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 75, 135, 0.3);
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 75, 135, 0.4);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Error Message */
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: white;
+            padding: 1rem;
+            border-radius: 12px;
+            margin: 0.5rem 0;
+            animation: slideIn 0.3s ease;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 0;
+                gap: 0;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: 0;
+                top: 0;
+                height: 100%;
+                z-index: 100;
+                transform: translateX(-100%);
+                margin: 0;
+                border-radius: 0;
+                width: 300px;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .menu-toggle {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .main-content {
+                border-radius: 0;
+            }
+
+            .header {
+                padding: 1rem;
+            }
+
+            .header-title h2 {
+                font-size: 1.2rem;
+            }
+
+            .status-indicator {
+                display: none;
+            }
+
+            .message-content {
+                max-width: 85%;
+            }
+
+            .chat-wrapper {
+                padding: 1rem;
+            }
+
+            .input-area {
+                padding: 1rem;
+            }
+        }
+
+        /* Overlay for mobile menu */
+        .overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 99;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+    </style>
 </head>
 <body>
-  <main id="app" class="container">
-    <aside class="sidebar" aria-label="좌측 패널">
-      <div class="logo" aria-label="기관 로고">KERIS</div>
-      
-      <div class="controls">
-        <label for="model">모델 선택</label>
-        <select id="model" aria-label="모델 선택">
-          <option value="chatgpt">ChatGPT (GPT-4o-mini)</option>
-          <option value="claude">Claude Sonnet 3.5</option>
-          <option value="gemini">Gemini 1.5 Pro</option>
-        </select>
-      </div>
-
-      <!-- 파일 업로드 영역 -->
-      <section class="upload-section" aria-labelledby="upload-title">
-        <h3 id="upload-title">문서 업로드</h3>
-        <div id="dropzone" class="dropzone">
-          <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
-          </svg>
-          <p class="dropzone-text">파일을 드래그하거나 클릭하세요</p>
-          <p class="dropzone-hint">PDF, DOCX, TXT 지원</p>
-          <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt" hidden/>
+    <div class="background-wrapper">
+        <div class="gradient-bg"></div>
+        <div class="floating-shapes">
+            <div class="shape"></div>
+            <div class="shape"></div>
+            <div class="shape"></div>
         </div>
+    </div>
 
-        <!-- 업로드된 파일 목록 -->
-        <div class="file-list" id="fileList" aria-live="polite">
-          <h4>업로드된 문서</h4>
-          <ul id="files"></ul>
-        </div>
-      </section>
-    </aside>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar glass-panel" id="sidebar">
+            <div class="logo-section">
+                <div class="logo-wrapper">
+                    <!-- KERIS Official Logo SVG -->
+                    <svg class="logo-svg" viewBox="0 0 400 100" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Logo Background Circles -->
+                        <circle cx="30" cy="35" r="18" fill="#8BC53F" opacity="0.9"/>
+                        <circle cx="50" cy="30" r="15" fill="#F7941E" opacity="0.9"/>
+                        <circle cx="40" cy="50" r="20" fill="#4DA6D6" opacity="0.9"/>
+                        
+                        <!-- KERIS Text -->
+                        <rect x="80" y="15" width="120" height="60" rx="10" fill="#004B87"/>
+                        <text x="140" y="55" font-family="Arial, sans-serif" font-size="36" font-weight="bold" fill="white" text-anchor="middle">KERIS</text>
+                        
+                        <!-- Korean Text -->
+                        <text x="250" y="40" font-family="'Noto Sans KR', sans-serif" font-size="18" font-weight="700" fill="#004B87">한국교육학술정보원</text>
+                        <text x="250" y="60" font-family="'Noto Sans KR', sans-serif" font-size="10" fill="#004B87">KOREA EDUCATION AND RESEARCH INFORMATION SERVICE</text>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <div class="logo-title">AI Assistant</div>
+                    <div class="logo-subtitle">교육 디지털 혁신을 위한<br>인공지능 도우미</div>
+                </div>
+            </div>
 
-    <section class="chat" aria-label="대화 영역">
-      <header class="chat-header">
-        <h1>KERIS RAG Chatbot</h1>
-        <span class="status" aria-live="polite">온라인</span>
-      </header>
+            <div class="upload-section">
+                <div class="controls">
+                    <label for="model">모델 선택</label>
+                    <select id="model" aria-label="모델 선택">
+                        <option value="chatgpt">ChatGPT (GPT-4o-mini)</option>
+                        <option value="claude">Claude Sonnet 3.5</option>
+                        <option value="gemini">Gemini 1.5 Pro</option>
+                    </select>
+                </div>
 
-      <div id="error" class="error-banner" role="alert"></div>
+                <h3>📎 문서 업로드</h3>
+                <div id="dropzone" class="dropzone">
+                    <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/>
+                    </svg>
+                    <p class="dropzone-text">파일을 드래그하거나 클릭하세요</p>
+                    <p class="dropzone-hint">PDF, DOCX, TXT 지원 (최대 10MB)</p>
+                    <input type="file" id="fileInput" multiple accept=".pdf,.docx,.txt" hidden/>
+                </div>
 
-      <div id="messages" class="messages" aria-live="polite">
-        <div class="welcome">환영합니다 👋<br/>좌측에서 문서를 업로드하고 질문하세요.</div>
-      </div>
+                <div class="file-list">
+                    <h4>업로드된 문서</h4>
+                    <ul id="files"></ul>
+                </div>
+            </div>
+        </aside>
 
-      <footer class="input-bar">
-        <input id="text" type="text" placeholder="메시지를 입력하세요..." aria-label="메시지 입력" autocomplete="off" inputmode="text"/>
-        <button id="send" aria-label="메시지 전송">전송 →</button>
-      </footer>
-    </section>
-  </main>
+        <!-- Main Content -->
+        <main class="main-content glass-panel">
+            <header class="header">
+                <div class="header-left">
+                    <button class="menu-toggle" id="menuToggle">☰</button>
+                    <div class="header-title">
+                        <h2>KERIS AI Assistant</h2>
+                        <div class="header-subtitle">무엇이든 물어보세요</div>
+                    </div>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot"></span>
+                    <span>온라인</span>
+                </div>
+            </header>
 
-  <script src="/assets/js/api.js"></script>
-  <script src="/assets/js/app.js"></script>
+            <div class="chat-wrapper" id="chatContainer">
+                <div class="welcome-message">
+                    <h2>안녕하세요! 👋</h2>
+                    <p>한국교육학술정보원 AI Assistant입니다.<br>
+                    문서를 업로드하여 질문하거나, 자유롭게 대화를 나눠보세요.</p>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <div class="input-wrapper">
+                    <input 
+                        type="text" 
+                        class="input-field" 
+                        id="messageInput" 
+                        placeholder="메시지를 입력하세요..."
+                        autocomplete="off"
+                    >
+                    <button class="send-btn" id="sendBtn">
+                        <span>전송</span>
+                        <span>→</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+
+        <!-- Mobile Overlay -->
+        <div class="overlay" id="overlay"></div>
+    </div>
+
+    <script src="/assets/js/api.js"></script>
+    <script>
+        (() => {
+            const $ = (s) => document.querySelector(s);
+            const messages = $("#chatContainer");
+            const text = $("#messageInput");
+            const send = $("#sendBtn");
+            const modelSel = $("#model");
+            const dropzone = $("#dropzone");
+            const fileInput = $("#fileInput");
+            const fileList = $("#files");
+            const menuToggle = $("#menuToggle");
+            const sidebar = $("#sidebar");
+            const overlay = $("#overlay");
+
+            const history = [];
+            const MAX_TURNS = 8;
+
+            function showError(msg){
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'error-message';
+                errorDiv.textContent = msg;
+                messages.appendChild(errorDiv);
+                setTimeout(() => errorDiv.remove(), 4000);
+            }
+
+            function formatFileSize(bytes){
+                if(bytes < 1024) return bytes + ' B';
+                if(bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+                return (bytes/(1024*1024)).toFixed(1) + ' MB';
+            }
+
+            async function loadFiles(){
+                try {
+                    const data = await window.API.listFiles();
+                    fileList.innerHTML = '';
+                    if(!data.files || data.files.length === 0){
+                        fileList.innerHTML = '<li style="opacity:.7;font-size:.85rem;padding:8px;">업로드된 문서가 없습니다</li>';
+                        return;
+                    }
+                    data.files.forEach(file => {
+                        const li = document.createElement('li');
+                        li.className = 'file-item success';
+                        li.innerHTML = `
+                            <div class="file-info">
+                                <div class="file-name">${file.name || file.filename}</div>
+                                <div class="file-size">${formatFileSize(file.size || 0)}</div>
+                            </div>
+                            <button class="file-remove" data-file="${file.name || file.filename}">삭제</button>
+                        `;
+                        fileList.appendChild(li);
+                    });
+
+                    fileList.querySelectorAll('.file-remove').forEach(btn => {
+                        btn.addEventListener('click', async (e)=>{
+                            const filename = e.target.dataset.file;
+                            if(!confirm(`"${filename}"을(를) 삭제하시겠습니까?`)) return;
+                            try{
+                                await window.API.deleteFile(filename);
+                                loadFiles();
+                            }catch(err){
+                                showError('파일 삭제 실패: ' + err.message);
+                            }
+                        });
+                    });
+                } catch(e){
+                    console.error('파일 목록 로드 실패:', e);
+                }
+            }
+
+            async function uploadFile(file){
+                const li = document.createElement('li');
+                li.className = 'file-item uploading';
+                li.innerHTML = `
+                    <div class="file-info">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-size">업로드 중...</div>
+                    </div>
+                `;
+                fileList.appendChild(li);
+
+                try{
+                    await window.API.uploadFile(file);
+                    loadFiles();
+                }catch(err){
+                    showError('업로드 실패: ' + err.message);
+                    li.remove();
+                }
+            }
+
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+                dropzone.addEventListener(evt, (e)=>{
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+            });
+
+            ['dragenter', 'dragover'].forEach(evt => {
+                dropzone.addEventListener(evt, ()=> dropzone.classList.add('dragover'));
+            });
+
+            ['dragleave', 'drop'].forEach(evt => {
+                dropzone.addEventListener(evt, ()=> dropzone.classList.remove('dragover'));
+            });
+
+            dropzone.addEventListener('drop', (e)=>{
+                const files = e.dataTransfer.files;
+                [...files].forEach(file => uploadFile(file));
+            });
+
+            dropzone.addEventListener('click', ()=> fileInput.click());
+
+            fileInput.addEventListener('change', (e)=>{
+                [...e.target.files].forEach(file => uploadFile(file));
+                e.target.value = '';
+            });
+
+            function renderMarkdown(text){
+                return text
+                    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+                    .replace(/\*(.+?)\*/g,'<em>$1</em>')
+                    .replace(/`(.+?)`/g,'<code>$1</code>')
+                    .replace(/\n/g,'<br/>');
+            }
+
+            function addMessage(role, content, withLabel=false){
+                const wrap = document.createElement('div');
+                wrap.className = `message ${role}`;
+                const label = document.createElement('span');
+                label.className = 'message-label';
+                label.textContent = role === 'user' ? '사용자' : 'KERIS AI';
+                const body = document.createElement('div');
+                body.className = 'md';
+                body.innerHTML = renderMarkdown(content);
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                if(withLabel) contentDiv.appendChild(label);
+                contentDiv.appendChild(body);
+                wrap.appendChild(contentDiv);
+                messages.appendChild(wrap);
+                messages.scrollTop = messages.scrollHeight;
+            }
+
+            function addTyping(){
+                const wrap = document.createElement('div');
+                wrap.className = 'message ai';
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'typing-indicator';
+                typingDiv.setAttribute('data-typing','1');
+                for(let i=0; i<3; i++){
+                    const dot = document.createElement('span');
+                    dot.className = 'typing-dot';
+                    typingDiv.appendChild(dot);
+                }
+                wrap.appendChild(typingDiv);
+                messages.appendChild(wrap);
+                messages.scrollTop = messages.scrollHeight;
+                return wrap;
+            }
+
+            async function onSend(){
+                const content = text.value.trim();
+                if(!content) return;
+                if(send.disabled) return;
+                send.disabled = true;
+
+                const welcomeMsg = messages.querySelector('.welcome-message');
+                if(welcomeMsg) welcomeMsg.remove();
+
+                addMessage('user', content, true);
+                history.push({ role:'user', content });
+                if(history.length > MAX_TURNS*2){ 
+                    history.splice(0, history.length - MAX_TURNS*2); 
+                }
+
+                text.value='';
+                const model = modelSel.value;
+                const typing = addTyping();
+
+                try{
+                    const res = await window.API.chat({ message: content, model, history });
+                    typing.remove();
+                    addMessage('ai', res.response || '(응답이 비어있습니다)', true);
+                    history.push({ role:'assistant', content: res.response || '' });
+                    if(history.length > MAX_TURNS*2){ 
+                        history.splice(0, history.length - MAX_TURNS*2); 
+                    }
+                }catch(e){
+                    typing.remove();
+                    showError('오류가 발생했습니다. 잠시 후 다시 시도해주세요.');
+                    addMessage('ai', '오류가 발생했습니다. 잠시 후 다시 시도해주세요.', true);
+                }finally{
+                    send.disabled = false;
+                }
+            }
+
+            send.addEventListener('click', onSend);
+            text.addEventListener('keypress', (e)=>{
+                if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); onSend(); }
+            });
+
+            menuToggle.addEventListener('click', ()=>{
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            });
+
+            overlay.addEventListener('click', ()=>{
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            });
+
+            loadFiles();
+        })();
+    </script>
 </body>
 </html>
