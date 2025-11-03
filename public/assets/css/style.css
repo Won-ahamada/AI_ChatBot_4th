@@ -10,14 +10,35 @@
   --success:#10b981;
   --danger:#ef4444;
 }
-html,body{height:100%;margin:0;font-family:system-ui,'Noto Sans KR',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2)}
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: system-ui, 'Noto Sans KR', sans-serif;
+  background: linear-gradient(135deg,
+    rgba(0, 128, 255, 0.3) 0%,
+    rgba(0, 255, 128, 0.3) 33%,
+    rgba(255, 165, 0, 0.3) 66%,
+    rgba(0, 128, 255, 0.3) 100%
+  );
+  background-size: 200% 200%;
+  animation: gradientFlow 60s ease-in-out infinite;
+  backdrop-filter: blur(12px);
+}
+@keyframes gradientFlow {
+  0% { background-position: 0% 0%; }
+  50% { background-position: 100% 100%; }
+  100% { background-position: 0% 0%; }
+}
+
+
+/* html,body{height:100%;margin:0;font-family:system-ui,'Noto Sans KR',sans-serif;background:linear-gradient(135deg,#667eea,#764ba2)}
 body{min-height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
 .container{display:flex;gap:12px;height:100dvh;max-width:1200px;margin:0 auto;padding:12px}
 .sidebar{width:320px;background:var(--glass);backdrop-filter:blur(12px);border-radius:16px;padding:16px;color:#fff;overflow:auto;border:1px solid var(--border)}
 .logo{font-weight:800;letter-spacing:.1em;margin-bottom:8px;font-size:1.4rem}
 .controls{display:flex;flex-direction:column;gap:6px;margin:8px 0 16px}
 .controls label{font-size:.9rem;opacity:.9}
-.controls select{padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.1);color:#fff;outline:none;cursor:pointer}
+.controls select{padding:10px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.1);color:#fff;outline:none;cursor:pointer}*/
 
 /* 업로드 섹션 */
 .upload-section{margin-top:16px}
