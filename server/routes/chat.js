@@ -1,7 +1,6 @@
-
 import { Router } from 'express';
 import { generateLLM } from '../services/llm.js';
-import { retrieveSnippets, ragEnabled } from '../services/rag.js';
+import { retrieveSnippets, ragEnabled, hasAnyDocuments } from '../services/rag.js';
 
 const router = Router();
 
@@ -12,11 +11,14 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: { code:'BAD_REQUEST', message:'message 필드는 필수입니다.' } });
     }
     
-    // RAG 검색 (업로드된 문서 기반)
+    // RAG 검색 - 업로드된 문서가 있을 때만 실행
     let snippets = [];
     if(ragEnabled()){
-      try{ 
-        snippets = await retrieveSnippets({ query: message, topK: 5 }); 
+      try{
+        const docsExist = await hasAnyDocuments();
+        if(docsExist){
+          snippets = await retrieveSnippets({ query: message, topK: 5 });
+        }
       }catch(err){
         console.warn('RAG 검색 실패:', err.message);
       }
