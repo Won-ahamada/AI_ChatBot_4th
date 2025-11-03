@@ -6,7 +6,7 @@
   --glass: rgba(255,255,255,.12);
   --glass-strong: rgba(255,255,255,.95);
   --border: rgba(255,255,255,.28);
-  --text: #222;
+  --text: #000;
   --success: #10b981;
   --danger: #ef4444;
 }
@@ -60,7 +60,7 @@ body {
   backdrop-filter: blur(12px);
   border-radius: 16px;
   padding: 16px;
-  color: #fff;
+  color: #000;
   overflow: auto;
   border: 1px solid var(--border);
 }
@@ -84,7 +84,7 @@ body {
   border-radius: 10px;
   border: 1px solid var(--border);
   background: rgba(255,255,255,.1);
-  color: #fff;
+  color: #000;
   outline: none;
   cursor: pointer;
 }
@@ -175,7 +175,7 @@ body {
 .file-remove {
   background: rgba(239,68,68,.3);
   border: 1px solid rgba(239,68,68,.5);
-  color: #fff;
+  color: #000;
   border-radius: 6px;
   padding: 4px 8px;
   font-size: .75rem;
@@ -194,7 +194,7 @@ body {
   background: var(--glass);
   backdrop-filter: blur(12px);
   border-radius: 16px;
-  color: #fff;
+  color: #000;
   border: 1px solid var(--border);
 }
 
